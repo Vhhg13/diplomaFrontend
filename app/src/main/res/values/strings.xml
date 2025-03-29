@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">HvacApp</string>
+    <string name="navigation">Навигация</string>
+    <string name="rooms">Помещения</string>
+    <string name="nav_logs">Логи</string>
+    <string name="nav_im">Настройка имитационной модели</string>
+    <string name="nav_leave">Выйти из учётной записи</string>
+</resources>

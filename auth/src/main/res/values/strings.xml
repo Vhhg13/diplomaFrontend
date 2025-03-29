@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_or_register">Войдите или зарегистрируйтесь</string>
+    <string name="log_in">Войти</string>
+    <string name="register">Зарегистрироваться</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="repeat_password">Повторите пароль</string>
+    <string name="passwords_do_not_match">Пароли не совпадают</string>
+    <string name="wrong_creds">Неправильный пароль</string>
+    <string name="username_taken">Имя пользователя занято</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="json_example">{\
+        \"id\": 5,\
+        \"heaters\": \"h5\",\
+        \"coolers\": \"c5\",\
+        \"volume\": 100,\
+        \"out\": 21,\
+        \"k\": 0.0001,\
+        \"thermostat\": \"t3\"\
+}
+    </string>
+    <string name="add_new">Добавить</string>
+</resources>
