@@ -2,10 +2,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-    kotlin("plugin.serialization")
 }
+
+apply<HiltPlugin>()
+apply<KotlinxJson>()
 
 android {
     namespace = "tk.vhhg.im"
@@ -40,34 +40,17 @@ android {
 }
 
 dependencies {
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    compose()
+
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Ktor
     implementation(libs.ktor.client.core)
-    //implementation(libs.ktor.client.cio)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-
-    // Compose
-//    implementation(libs.androidx.core.ktx)
-//    implementation(libs.androidx.lifecycle.runtime.ktx)
-//    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-
-    // Kotlinx serialization
-    implementation(libs.kotlinx.serialization.json)
 
     implementation(project(":theme"))
-
 
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

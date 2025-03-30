@@ -2,14 +2,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    // Hilt
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-
-    // Kotlinx serialization
-    kotlin("plugin.serialization")
 }
+
+apply<HiltPlugin>()
+apply<KotlinxJson>()
 
 android {
     namespace = "tk.vhhg.auth"
@@ -41,33 +37,19 @@ android {
 }
 
 dependencies {
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    compose()
+
     // DataStore
     implementation(libs.androidx.datastore.preferences)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
 
     // Ktor
     implementation(libs.ktor.client.core)
 
-    // Kotlinx serialization
-    implementation(libs.kotlinx.serialization.json)
-
-    // Compose preview
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    // Compose
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-
     implementation(project(":theme"))
 
+    // Basic
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
