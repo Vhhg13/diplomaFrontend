@@ -1,9 +1,16 @@
 package tk.vhhg.hvacapp.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
@@ -11,6 +18,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,29 +27,42 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import tk.vhhg.hvacapp.R
 import tk.vhhg.hvacapp.navigation.Screen.ImSettingsRoute
 import tk.vhhg.hvacapp.navigation.Screen.LogsRoute
 import tk.vhhg.hvacapp.navigation.Screen.RoomsRoute
+import tk.vhhg.hvacapp.navigation.Screen.SpecificRoomRoute
 import tk.vhhg.im.ui.ImScreen
-import tk.vhhg.knob.KnobPreview
+import tk.vhhg.knob.TKnob
+import tk.vhhg.rooms.RoomDialogEnum
+import tk.vhhg.rooms.RoomsScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,10 +71,20 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    var scaffoldColor by remember { mutableStateOf(surfaceColor) }
+    val textColor by remember { derivedStateOf { getTextColor(scaffoldColor) } }
+    val textColorAnimated by animateColorAsState(textColor, animationSpec = tween(1000))
+    val scaffoldColorAnimated by animateColorAsState(scaffoldColor, animationSpec = tween(1000))
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    if (!navBackStackEntry.isRoute(RoomsRoute)) scaffoldColor = surfaceColor
+
+    val roomDialog = remember { mutableStateOf<RoomDialogEnum?>(null) }
 
     ModalNavigationDrawer(
-        gesturesEnabled = false,
+        gesturesEnabled = true,
         drawerState = drawerState,
         modifier = modifier,
         drawerContent = {
@@ -65,78 +96,93 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                 )
 
                 NavigationDrawerItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Home,
-                            contentDescription = null
-                        )
-                    },
+                    icon = { Icon(Icons.Outlined.Home, null) },
                     label = navLabel(R.string.rooms),
                     selected = navBackStackEntry.isRoute(RoomsRoute),
                     onClick = {
                         navController.navigate(RoomsRoute)
-                        scope.launch {
-                            drawerState.close()
-                        }
+                        scope.launch { drawerState.close() }
                     }
                 )
                 NavigationDrawerItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.List,
-                            contentDescription = null
-                        )
-                    },
+                    icon = { Icon(Icons.AutoMirrored.Outlined.List,null) },
                     label = navLabel(R.string.nav_logs),
                     selected = navBackStackEntry.isRoute(LogsRoute),
                     onClick = {
                         navController.navigate(LogsRoute)
-                        scope.launch {
-                            drawerState.close()
-                        }
+                        scope.launch { drawerState.close() }
                     }
                 )
                 NavigationDrawerItem(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.PlayArrow,
-                            contentDescription = null
-                        )
-                    },
+                    icon = { Icon(Icons.Outlined.PlayArrow, null) },
                     label = navLabel(R.string.nav_im),
                     selected = navBackStackEntry.isRoute(ImSettingsRoute),
                     onClick = {
                         navController.navigate(ImSettingsRoute)
-                        scope.launch {
-                            drawerState.close()
-                        }
+                        scope.launch { drawerState.close() }
                     }
                 )
                 NavigationDrawerItem(
-                    icon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null) },
+                    icon = { Icon(Icons.Outlined.Lock, null) },
                     label = navLabel(R.string.nav_leave),
                     selected = false,
                     onClick = logout
                 )
             }
         }) {
-        Scaffold(topBar = {
-            CenterAlignedTopAppBar(navigationIcon = {
-                IconButton(onClick = {
-                    scope.launch { drawerState.open() }
-                }) {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Show NavDrawer")
+        Scaffold(
+            containerColor = if (scaffoldColor == surfaceColor) surfaceColor else scaffoldColorAnimated,
+            floatingActionButton = {
+                FloatingActionButton({ roomDialog.value = RoomDialogEnum.ADD }) {
+                    Icon(Icons.Default.Add, "Add new room")
                 }
-            }, title = { ScreenTitle(navBackStackEntry?.destination) })
-        }) {
+            },
+            topBar = {
+                CenterAlignedTopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent, titleContentColor = textColorAnimated),
+                    title = { ScreenTitle(navBackStackEntry) },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch { drawerState.open() }
+                        }) {
+                            Icon(Icons.Default.Menu, "Show NavDrawer", tint = textColorAnimated)
+                        }
+                    },
+                    actions = {
+                        IconButton({ roomDialog.value = RoomDialogEnum.EDIT }) {
+                            Icon(Icons.Default.Edit, "Edit Room", tint = textColorAnimated)
+                        }
+                    })
+            }) {
             NavHost(
                 modifier = Modifier.padding(it),
                 navController = navController,
                 startDestination = RoomsRoute
             ) {
-                composable<RoomsRoute> { KnobPreview() }
-                composable<LogsRoute> { Text("Logs") }
+                composable<RoomsRoute> {
+                    RoomsScreen(
+                        roomDialog,
+                        textColor = textColorAnimated,
+                        navigateToRoom = { id, name -> navController.navigate(SpecificRoomRoute(id, name)) },
+                        onChangeColor = { color -> scaffoldColor = color }
+                    )
+                }
+                composable<LogsRoute> {
+                    TKnob(
+                        30F, 5F, 20,
+                        Modifier.padding(16.dp).fillMaxWidth(), 50,
+                        { it % 45 == 0 }, 2) { from, to ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("28 °C", fontSize = 50.sp)
+                            Text("Охлаждение до 20 °C")
+                        }
+                    }
+                }
                 composable<ImSettingsRoute> { ImScreen() }
+                composable<SpecificRoomRoute> { specificRoomRoute ->
+                    val roomId = specificRoomRoute.toRoute<SpecificRoomRoute>().id
+                    Text(roomId.toString(), Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+                }
             }
         }
     }
@@ -151,12 +197,13 @@ private fun navLabel(@StringRes id: Int): @Composable () -> Unit = {
 }
 
 @Composable
-private fun ScreenTitle(dest: NavDestination?, modifier: Modifier = Modifier) {
+private fun ScreenTitle(entry: NavBackStackEntry?, modifier: Modifier = Modifier) {
     Text(
         when {
-            dest?.hasRoute(RoomsRoute::class) == true -> stringResource(R.string.rooms)
-            dest?.hasRoute(LogsRoute::class) == true -> stringResource(R.string.nav_logs)
-            dest?.hasRoute(ImSettingsRoute::class) == true -> stringResource(R.string.nav_im)
+            entry?.destination?.hasRoute(RoomsRoute::class) == true -> stringResource(R.string.rooms)
+            entry?.destination?.hasRoute(LogsRoute::class) == true -> stringResource(R.string.nav_logs)
+            entry?.destination?.hasRoute(ImSettingsRoute::class) == true -> stringResource(R.string.nav_im)
+            entry?.destination?.hasRoute(SpecificRoomRoute::class) == true -> entry.toRoute<SpecificRoomRoute>().name
             else -> ""
         },
         modifier
@@ -172,4 +219,16 @@ sealed interface Screen {
 
     @Serializable
     data object ImSettingsRoute : Screen
+
+    @Serializable
+    data class SpecificRoomRoute(val id: Long, val name: String) : Screen
+}
+
+private fun getTextColor(backgroundColor: Color): Color {
+    val argb = backgroundColor.toArgb()
+    val red = (argb shr 16 and 0xFF) / 255.0
+    val green = (argb shr 8 and 0xFF) / 255.0
+    val blue = (argb and 0xFF) / 255.0
+    val luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return if (luminance > 0.5) Color(0xFF000000) else Color(0xFFFFFFFF)
 }

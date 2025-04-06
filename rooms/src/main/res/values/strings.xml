@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="change_parameters">Изменить параметры помещения</string>
+    <string name="change_color">Изменить цвет</string>
+    <string name="delete_room">Удалить помещение</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="name_of_room">Название помещения</string>
+    <string name="vol_of_room">Объём помещения</string>
+    <string name="invalid_vol">Некорректное значение объёма</string>
+    <string name="add_room">Добавить помещение</string>
+    <string name="invalid_color">Некорректный цвет</string>
+    <string name="name_not_blank">Имя не должно быть пустым</string>
+    <string name="no_rooms">Нет помещений</string>
+    <string name="choose_color">Цвет</string>
+</resources>

@@ -88,6 +88,7 @@ dependencies {
     implementation(project(":auth"))
     implementation(project(":theme"))
     implementation(project(":knob"))
+    implementation(project(":rooms"))
 
     // Tests
     testImplementation(libs.junit)

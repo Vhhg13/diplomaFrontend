@@ -5,4 +5,5 @@
     <string name="nav_logs">Логи</string>
     <string name="nav_im">Настройка имитационной модели</string>
     <string name="nav_leave">Выйти из учётной записи</string>
+    <string name="nav_room">Помещение</string>
 </resources>
