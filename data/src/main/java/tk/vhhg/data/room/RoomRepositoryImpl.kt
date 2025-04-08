@@ -14,21 +14,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tk.vhhg.data.dto.Room
 import tk.vhhg.data.error.ChangeTempError
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RoomRepositoryImpl @Inject constructor(private val client: HttpClient) : RoomRepository {
-    override suspend fun changeTemperature(
+    override suspend fun changeTemperatureRegime(
         roomId: Long,
         target: Float,
-        deadline: Instant?,
+        deadline: Long?,
     ): ChangeTempError? = withContext(Dispatchers.IO) {
         val response = client.post("rooms/$roomId/temperature") {
             contentType(ContentType.Application.Json)
             setBody(buildMap {
-                deadline?.let { put("deadline", deadline.epochSecond) }
+                deadline?.let { put("deadline", deadline.toString()) }
                 put("target", target.toString())
             })
         }

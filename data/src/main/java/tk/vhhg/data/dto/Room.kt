@@ -9,5 +9,8 @@ data class Room(
     val name: String,
     val volume: Float,
     val color: String,
-    val scriptCode: String
+    val scriptCode: String,
+    val devices: List<Device> = emptyList(),
+    val deadline: Long? = null,
+    val target: Float? = null
 )

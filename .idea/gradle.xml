@@ -28,6 +28,7 @@
             <option value="$PROJECT_DIR$/im" />
             <option value="$PROJECT_DIR$/knob" />
             <option value="$PROJECT_DIR$/rooms" />
+            <option value="$PROJECT_DIR$/specific_room" />
             <option value="$PROJECT_DIR$/theme" />
           </set>
         </option>

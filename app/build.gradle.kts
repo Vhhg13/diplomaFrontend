@@ -89,6 +89,7 @@ dependencies {
     implementation(project(":theme"))
     implementation(project(":knob"))
     implementation(project(":rooms"))
+    implementation(project(":specific_room"))
 
     // Tests
     testImplementation(libs.junit)

@@ -3,13 +3,11 @@ package tk.vhhg.hvacapp.navigation
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Home
@@ -36,14 +34,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -60,9 +55,9 @@ import tk.vhhg.hvacapp.navigation.Screen.LogsRoute
 import tk.vhhg.hvacapp.navigation.Screen.RoomsRoute
 import tk.vhhg.hvacapp.navigation.Screen.SpecificRoomRoute
 import tk.vhhg.im.ui.ImScreen
-import tk.vhhg.knob.TKnob
 import tk.vhhg.rooms.RoomDialogEnum
 import tk.vhhg.rooms.RoomsScreen
+import tk.vhhg.specific_room.SpecificRoomScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +79,7 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
     val roomDialog = remember { mutableStateOf<RoomDialogEnum?>(null) }
 
     ModalNavigationDrawer(
-        gesturesEnabled = true,
+        gesturesEnabled = false,
         drawerState = drawerState,
         modifier = modifier,
         drawerContent = {
@@ -100,7 +95,10 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                     label = navLabel(R.string.rooms),
                     selected = navBackStackEntry.isRoute(RoomsRoute),
                     onClick = {
-                        navController.navigate(RoomsRoute)
+                        navController.popBackStack()
+                        navController.navigate(RoomsRoute) {
+                            launchSingleTop = true
+                        }
                         scope.launch { drawerState.close() }
                     }
                 )
@@ -109,7 +107,10 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                     label = navLabel(R.string.nav_logs),
                     selected = navBackStackEntry.isRoute(LogsRoute),
                     onClick = {
-                        navController.navigate(LogsRoute)
+                        navController.popBackStack()
+                        navController.navigate(LogsRoute) {
+                            launchSingleTop = true
+                        }
                         scope.launch { drawerState.close() }
                     }
                 )
@@ -118,7 +119,10 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                     label = navLabel(R.string.nav_im),
                     selected = navBackStackEntry.isRoute(ImSettingsRoute),
                     onClick = {
-                        navController.navigate(ImSettingsRoute)
+                        navController.popBackStack()
+                        navController.navigate(ImSettingsRoute) {
+                            launchSingleTop = true
+                        }
                         scope.launch { drawerState.close() }
                     }
                 )
@@ -133,6 +137,7 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
         Scaffold(
             containerColor = if (scaffoldColor == surfaceColor) surfaceColor else scaffoldColorAnimated,
             floatingActionButton = {
+                if (navBackStackEntry.isRoute(RoomsRoute))
                 FloatingActionButton({ roomDialog.value = RoomDialogEnum.ADD }) {
                     Icon(Icons.Default.Add, "Add new room")
                 }
@@ -142,15 +147,21 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                     colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent, titleContentColor = textColorAnimated),
                     title = { ScreenTitle(navBackStackEntry) },
                     navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
-                            Icon(Icons.Default.Menu, "Show NavDrawer", tint = textColorAnimated)
+                        if (navController.previousBackStackEntry != null) {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(Icons.Default.ArrowBack, "Navigate back", tint = textColorAnimated)
+                            }
+                        } else {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Default.Menu, "Show NavDrawer", tint = textColorAnimated)
+                            }
                         }
                     },
                     actions = {
-                        IconButton({ roomDialog.value = RoomDialogEnum.EDIT }) {
-                            Icon(Icons.Default.Edit, "Edit Room", tint = textColorAnimated)
+                        if (navBackStackEntry.isRoute(RoomsRoute)) {
+                            IconButton({ roomDialog.value = RoomDialogEnum.EDIT }) {
+                                Icon(Icons.Default.Edit, "Edit Room", tint = textColorAnimated)
+                            }
                         }
                     })
             }) {
@@ -167,21 +178,17 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                         onChangeColor = { color -> scaffoldColor = color }
                     )
                 }
-                composable<LogsRoute> {
-                    TKnob(
-                        30F, 5F, 20,
-                        Modifier.padding(16.dp).fillMaxWidth(), 50,
-                        { it % 45 == 0 }, 2) { from, to ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("28 °C", fontSize = 50.sp)
-                            Text("Охлаждение до 20 °C")
-                        }
-                    }
-                }
+                composable<LogsRoute> { }
                 composable<ImSettingsRoute> { ImScreen() }
                 composable<SpecificRoomRoute> { specificRoomRoute ->
                     val roomId = specificRoomRoute.toRoute<SpecificRoomRoute>().id
-                    Text(roomId.toString(), Modifier.fillMaxSize(), textAlign = TextAlign.Center)
+                    SpecificRoomScreen(roomId, navigateToDevice = { deviceId ->
+                        navController.navigate(Screen.DeviceRoute(deviceId))
+                    })
+                }
+                composable<Screen.DeviceRoute> { deviceScreen ->
+                    val deviceId = deviceScreen.toRoute<Screen.DeviceRoute>().id
+                    Text("$deviceId")
                 }
             }
         }
@@ -222,6 +229,9 @@ sealed interface Screen {
 
     @Serializable
     data class SpecificRoomRoute(val id: Long, val name: String) : Screen
+
+    @Serializable
+    data class DeviceRoute(val id: Long) : Screen
 }
 
 private fun getTextColor(backgroundColor: Color): Color {
