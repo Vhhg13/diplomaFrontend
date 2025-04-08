@@ -17,10 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.core.graphics.toColorInt
 import androidx.hilt.navigation.compose.hiltViewModel
 import tk.vhhg.rooms.composables.CommonDialog
-import tk.vhhg.rooms.composables.PagerArrows
+import tk.vhhg.rooms.composables.PagerDots
 import tk.vhhg.rooms.composables.PlaceholderComponent
 
 @Composable
@@ -34,7 +35,7 @@ fun RoomsScreen(
 ){
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState { uiState.pageCount }
-    if (uiState.pageCount > 1) PagerArrows(textColor)
+    PagerDots(textColor, pagerState.settledPage, uiState.pageCount)
     HorizontalPager(pagerState, modifier
         .fillMaxSize()
         .background(Color.Transparent)) { page: Int ->
@@ -47,7 +48,7 @@ fun RoomsScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(room.name, color = textColor)
+            Text(room.name, color = textColor, style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center)
         }
     }
 
