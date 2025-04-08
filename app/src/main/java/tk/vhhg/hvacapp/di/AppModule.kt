@@ -24,6 +24,7 @@ import io.ktor.serialization.kotlinx.json.json
 import tk.vhhg.auth.data.TokenService
 import tk.vhhg.auth.model.TokenPair
 import tk.vhhg.hvacapp.BuildConfig
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,6 +33,7 @@ interface AppModule {
         private const val BASE_URL = BuildConfig.SERVER_ADDRESS
 
         @Provides
+        @Singleton
         fun provideKtor(tokenService: TokenService): HttpClient {
             return HttpClient(CIO) {
                 install(ContentNegotiation) { json() }

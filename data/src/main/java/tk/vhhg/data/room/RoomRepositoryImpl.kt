@@ -16,7 +16,9 @@ import tk.vhhg.data.dto.Room
 import tk.vhhg.data.error.ChangeTempError
 import java.time.Instant
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RoomRepositoryImpl @Inject constructor(private val client: HttpClient) : RoomRepository {
     override suspend fun changeTemperature(
         roomId: Long,
