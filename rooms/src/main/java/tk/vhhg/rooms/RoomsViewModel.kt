@@ -34,12 +34,13 @@ class RoomsViewModel @Inject constructor(private val roomRepository: RoomReposit
     fun update(roomIndex: Int, name: String, vol: String, clr: String): Boolean {
         if (!checkValues(name, vol, clr)) return false
         viewModelScope.launch {
-            val newRoom = uiState.value.rooms[roomIndex].copy(
+            val oldRoom = uiState.value.rooms[roomIndex]
+            val newRoom = oldRoom.copy(
                 name = name,
                 color = clr,
                 volume = vol.toFloat()
             )
-            if (!roomRepository.updateRoom(newRoom)) return@launch
+            if (!roomRepository.updateRoom(oldRoom, newRoom)) return@launch
             _uiState.update {
                 it.copy(rooms = it.rooms.mapIndexed { idx, room ->
                     if (idx == roomIndex) newRoom else room

@@ -103,7 +103,7 @@ class SpecificRoomViewModel @AssistedInject constructor(
 
     private fun saveScript(code: String) = viewModelScope.launch {
         _uiState.update { it.copy(scriptCode = code) }
-        roomRepository.updateRoom(room.await().copy(scriptCode = code))
+        roomRepository.updateRoom(room.await(), room.await().copy(scriptCode = code))
     }.let {}
 
     @OptIn(DelicateCoroutinesApi::class)

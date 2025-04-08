@@ -48,10 +48,10 @@ class RoomRepositoryImpl @Inject constructor(private val client: HttpClient) : R
         else response.body()
     }
 
-    override suspend fun updateRoom(room: Room): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun updateRoom(oldRoom: Room, newRoom: Room): Boolean = withContext(Dispatchers.IO) {
         val response = client.patch("rooms") {
             contentType(ContentType.Application.Json)
-            setBody(room)
+            setBody(oldRoom.getPatchInto(newRoom))
         }
         response.status == HttpStatusCode.OK
     }
