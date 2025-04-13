@@ -95,9 +95,9 @@ private fun ScreenPreview() {
                 deadline = System.currentTimeMillis() + 3600000,
                 //deadline = null,
                 devices = listOf(
-                    Device(1, "Конд", DeviceType.COND, 1, null, ""),
-                    Device(1, "Грей", DeviceType.HEAT, 1, null, ""),
-                    Device(1, "Темпо", DeviceType.TEMP, 1, null, "")
+                    Device(1, "Конд", DeviceType.COND, 1, null, "", maxPower = 100F),
+                    Device(1, "Грей", DeviceType.HEAT, 1, null, "", maxPower = 10F),
+                    Device(1, "Темпо", DeviceType.TEMP, 1, null, "", maxPower = 5F)
                 ),
                 scriptCode = "",
             ), {}, {})
@@ -204,7 +204,7 @@ fun ColumnScope.DevicesAndScripts(
                 .fillMaxWidth()
                 .clickable {
                     //onEvent(UiEvent.AddNewDeviceEvent)
-                    navigateToDevice(-1)
+                    navigateToDevice(Device.NONEXISTENT_DEVICE_ID)
                 }) {
                 Icon(Icons.Default.Add, null, Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.add_device), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)

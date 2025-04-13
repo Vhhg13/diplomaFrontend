@@ -17,13 +17,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tk.vhhg.data.device.DeviceRepository
 import tk.vhhg.data.dto.DeviceType
 import tk.vhhg.data.room.RoomRepository
 
 @HiltViewModel(assistedFactory = SpecificRoomViewModel.Factory::class)
 class SpecificRoomViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val deviceRepository: DeviceRepository
 ) : ViewModel() {
     companion object {
         const val DEBOUNCE_DURATION = 2000L
@@ -46,18 +48,20 @@ class SpecificRoomViewModel @AssistedInject constructor(
                 devices = awaitedRoom.devices
             ) }
 
-            val thermostat = uiState.value.devices.getOrNull(0)?.let { firstDevice ->
+            val thermostatDataFlow = uiState.value.devices.getOrNull(0)?.let { firstDevice ->
                 if (firstDevice.type == DeviceType.TEMP) firstDevice else null
+            }?.let { thermostat ->
+                deviceRepository.getDeviceDataFlow(roomId, thermostat.id)
             }
-            //thermostat.getDeviceDataFlow(roomId, firstDevice.id)
-            val thermostatDataFlow = flow {
-                for (i in 0..100) {
-                    emit((18 + i%3).toFloat())
-                    delay(1000)
-                }
-            }
+
+//            val thermostatDataFlow = flow {
+//                for (i in 0..100) {
+//                    emit((18 + i%3).toFloat())
+//                    delay(1000)
+//                }
+//            }
             _uiState.update { it.copy(isLoading = false) }
-            thermostatDataFlow.collect { temp ->
+            thermostatDataFlow?.collect { temp ->
                 _uiState.update { it.copy(currentTemp = temp) }
             }
         }

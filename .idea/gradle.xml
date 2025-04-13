@@ -25,6 +25,7 @@
             <option value="$PROJECT_DIR$/auth" />
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/data" />
+            <option value="$PROJECT_DIR$/device" />
             <option value="$PROJECT_DIR$/im" />
             <option value="$PROJECT_DIR$/knob" />
             <option value="$PROJECT_DIR$/rooms" />

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="room">Помещение</string>
+    <string name="device_topic">Топик устройства</string>
+    <string name="save">Сохранить</string>
+    <string name="device_name">Имя устройства</string>
+    <string name="watts">%1$s Вт</string>
+    <string name="max_power">Максимальная мощность</string>
+</resources>

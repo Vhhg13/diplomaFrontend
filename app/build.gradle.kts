@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.logging)
 
+    implementation(libs.ktor.websockets)
+
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
@@ -90,6 +92,7 @@ dependencies {
     implementation(project(":knob"))
     implementation(project(":rooms"))
     implementation(project(":specific_room"))
+    implementation(project(":device"))
 
     // Tests
     testImplementation(libs.junit)

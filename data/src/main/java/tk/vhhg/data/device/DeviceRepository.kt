@@ -9,7 +9,7 @@ interface DeviceRepository {
     suspend fun createDevice(device: Device): Device?
     suspend fun updateDevice(device: Device): Boolean
     suspend fun getDeviceDataFlow(roomId: Long, deviceId: Long): Flow<Float>?
-    suspend fun deleteDevice(deviceId: Long): Boolean
+    suspend fun deleteDevice(roomId: Long, deviceId: Long): Boolean
     suspend fun setDeviceValue(roomId: Long, deviceId: Long, value: Float): Boolean
     suspend fun getDeviceWithHistoricData(roomId: Long, deviceId: Long, from: Instant?, to: Instant?): Device?
 }

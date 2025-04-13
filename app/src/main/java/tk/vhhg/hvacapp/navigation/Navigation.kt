@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import tk.vhhg.device.DeviceScreen
 import tk.vhhg.hvacapp.R
 import tk.vhhg.hvacapp.navigation.Screen.ImSettingsRoute
 import tk.vhhg.hvacapp.navigation.Screen.LogsRoute
@@ -181,14 +182,16 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                 composable<LogsRoute> { }
                 composable<ImSettingsRoute> { ImScreen() }
                 composable<SpecificRoomRoute> { specificRoomRoute ->
-                    val roomId = specificRoomRoute.toRoute<SpecificRoomRoute>().id
+                    val route = specificRoomRoute.toRoute<SpecificRoomRoute>()
+                    val roomId = route.id
+                    val roomName = route.name
                     SpecificRoomScreen(roomId, navigateToDevice = { deviceId ->
-                        navController.navigate(Screen.DeviceRoute(deviceId))
+                        navController.navigate(Screen.DeviceRoute(deviceId, roomId, roomName))
                     })
                 }
                 composable<Screen.DeviceRoute> { deviceScreen ->
-                    val deviceId = deviceScreen.toRoute<Screen.DeviceRoute>().id
-                    Text("$deviceId")
+                    val route = deviceScreen.toRoute<Screen.DeviceRoute>()
+                    DeviceScreen(route.deviceId, route.roomId, route.roomName)
                 }
             }
         }
@@ -231,7 +234,7 @@ sealed interface Screen {
     data class SpecificRoomRoute(val id: Long, val name: String) : Screen
 
     @Serializable
-    data class DeviceRoute(val id: Long) : Screen
+    data class DeviceRoute(val deviceId: Long, val roomId: Long, val roomName: String) : Screen
 }
 
 private fun getTextColor(backgroundColor: Color): Color {

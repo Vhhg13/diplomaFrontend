@@ -15,6 +15,7 @@ import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -39,6 +40,7 @@ interface AppModule {
                 install(ContentNegotiation) { json() }
                 defaultRequest { url(BASE_URL) }
                 install(Logging)
+                install(WebSockets)
                 install(Auth) {
                     bearer {
                         loadTokens {

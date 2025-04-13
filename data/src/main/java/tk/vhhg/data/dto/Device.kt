@@ -9,5 +9,10 @@ data class Device(
     val type: DeviceType,
     val roomId: Long,
     val historicData: List<PieceOfHistory>?,
-    val topic: String
-)
+    val topic: String,
+    val maxPower: Float
+) {
+    companion object {
+        const val NONEXISTENT_DEVICE_ID = 0L
+    }
+}
