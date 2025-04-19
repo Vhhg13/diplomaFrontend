@@ -21,14 +21,14 @@ import javax.inject.Singleton
 class RoomRepositoryImpl @Inject constructor(private val client: HttpClient) : RoomRepository {
     override suspend fun changeTemperatureRegime(
         roomId: Long,
-        target: Float,
+        target: Float?,
         deadline: Long?,
     ): ChangeTempError? = withContext(Dispatchers.IO) {
         val response = client.post("rooms/$roomId/temperature") {
             contentType(ContentType.Application.Json)
             setBody(buildMap {
                 deadline?.let { put("deadline", deadline.toString()) }
-                put("target", target.toString())
+                target?.let { put("target", it.toString()) }
             })
         }
         when (response.status) {

@@ -1,6 +1,7 @@
 package tk.vhhg.device
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -82,13 +83,19 @@ fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifie
             textAlign = TextAlign.Center
         )
 
-        Slider(
-            modifier = Modifier.padding(32.dp),
-            value = uiState.currentWattage,
-            onValueChange = { wattage ->
-                onEvent(UiEvent.SetWattageEvent(wattage))
+        AnimatedVisibility(uiState.maxPower.toFloatOrNull() != null) {
+            uiState.maxPower.toFloatOrNull()?.let {
+                Slider(
+                    valueRange = 0F..it,
+                    modifier = Modifier.padding(32.dp),
+                    value = uiState.currentWattage,
+                    onValueChange = { wattage ->
+                        onEvent(UiEvent.SetWattageEvent(wattage))
+                    }
+                )
             }
-        )
+        }
+
 
         OutlinedTextField(
             modifier = Modifier.padding(horizontal = 32.dp).fillMaxWidth(),
@@ -171,14 +178,14 @@ fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifie
         }
 
         val onSurface = MaterialTheme.colorScheme.onSurface
-        Canvas(Modifier
-            .padding(32.dp)
-            .fillMaxWidth()
-            .height(dimensionResource(R.dimen.placeholder_graph_height))) {
-            drawLine(onSurface, Offset.Zero, Offset(0F, size.height), strokeWidth = 5F)
-            drawLine(onSurface, Offset(0F, size.height), Offset(size.width, size.height), strokeWidth = 5F)
-            drawLine(onSurface, Offset(50F, size.height-50), Offset(size.height-50F, 50F), strokeWidth = 5F)
-        }
+//        Canvas(Modifier
+//            .padding(32.dp)
+//            .fillMaxWidth()
+//            .height(dimensionResource(R.dimen.placeholder_graph_height))) {
+//            drawLine(onSurface, Offset.Zero, Offset(0F, size.height), strokeWidth = 5F)
+//            drawLine(onSurface, Offset(0F, size.height), Offset(size.width, size.height), strokeWidth = 5F)
+//            drawLine(onSurface, Offset(50F, size.height-50), Offset(size.height-50F, 50F), strokeWidth = 5F)
+//        }
     }
 }
 

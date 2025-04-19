@@ -6,6 +6,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,6 +27,10 @@ class DeviceScreenViewModel @AssistedInject constructor(
     @Assisted private val roomName: String,
     private val deviceRepository: DeviceRepository,
 ) : ViewModel() {
+
+    companion object {
+        const val DEBOUNCE_DELAY = 500L
+    }
 
     @AssistedFactory
     interface Factory { fun create(@Assisted("roomId") roomId: Long, @Assisted("deviceId") deviceId: Long, roomName: String): DeviceScreenViewModel }
@@ -57,7 +65,7 @@ class DeviceScreenViewModel @AssistedInject constructor(
                     Instant.now().minus(1, ChronoUnit.MINUTES),
                     Instant.now()
                 )?.let { device ->
-                    _uiState.update { it.copy(device = device) }
+                    _uiState.update { it.copy(device = device, maxPower = device.maxPower.toString()) }
                 }
             }
             _uiState.update {
@@ -126,9 +134,25 @@ class DeviceScreenViewModel @AssistedInject constructor(
         }
     }
 
+    private var valueDebounce: Job? = null
     private fun setWattage(wattage: Float) {
-        viewModelScope.launch {
+        valueDebounce?.cancel()
+        valueDebounce = viewModelScope.launch {
+            _uiState.update {
+                it.copy(currentWattage = wattage)
+            }
+            delay(DEBOUNCE_DELAY)
             deviceRepository.setDeviceValue(roomId = roomId, value = wattage, deviceId = deviceId)
+            valueDebounce = null
         }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun onCleared() {
+        valueDebounce?.cancel()
+        GlobalScope.launch {
+            deviceRepository.setDeviceValue(roomId = roomId, value = _uiState.value.currentWattage, deviceId = deviceId)
+        }
+        super.onCleared()
     }
 }

@@ -2,7 +2,7 @@
 <resources>
     <string name="specify_cool_deadline">Указать срок охлаждения</string>
     <string name="specify_heat_deadline">Указать срок обогрева</string>
-    <string name="devices_and_scripts">Устройства и сценарии</string>
+    <string name="devices_and_scripts">Устройства</string>
     <string name="save">Сохранить</string>
     <string name="add_device">Новое устройство</string>
     <string name="no_thermostat">Нет термостата</string>

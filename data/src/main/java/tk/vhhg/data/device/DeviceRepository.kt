@@ -6,7 +6,7 @@ import java.time.Instant
 
 interface DeviceRepository {
     suspend fun getDevicesIn(roomId: Long): List<Device>?
-    suspend fun createDevice(device: Device): Device?
+    suspend fun createDevice(device: Device): Long?
     suspend fun updateDevice(device: Device): Boolean
     suspend fun getDeviceDataFlow(roomId: Long, deviceId: Long): Flow<Float>?
     suspend fun deleteDevice(roomId: Long, deviceId: Long): Boolean

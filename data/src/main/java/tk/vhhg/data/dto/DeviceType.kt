@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class DeviceType {
-    @SerialName("cond")
-    COND,
     @SerialName("temp")
     TEMP,
+    @SerialName("cond")
+    COND,
     @SerialName("heat")
     HEAT
 }

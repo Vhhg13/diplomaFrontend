@@ -4,10 +4,8 @@ import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
-import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -15,38 +13,27 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.websocket.CloseReason
-import io.ktor.websocket.close
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tk.vhhg.data.dto.Device
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
+import kotlin.math.roundToInt
 
 @Singleton
 class DeviceRepositoryImpl @Inject constructor(private val client: HttpClient) : DeviceRepository {
     override suspend fun getDevicesIn(roomId: Long): List<Device> = TODO("Not needed")
 
-    override suspend fun createDevice(device: Device): Device? = withContext(Dispatchers.IO) {
+    override suspend fun createDevice(device: Device): Long? = withContext(Dispatchers.IO) {
         val response = client.post("rooms/${device.roomId}/devices") {
             contentType(ContentType.Application.Json)
             setBody(device.copy(historicData = null))
         }
         if (response.status == HttpStatusCode.OK) {
-            response.body()
+            response.body<Device>().id
         } else {
             null
         }
@@ -61,18 +48,13 @@ class DeviceRepositoryImpl @Inject constructor(private val client: HttpClient) :
     }
 
     override suspend fun getDeviceDataFlow(roomId: Long, deviceId: Long): Flow<Float> {
-//        val url = "rooms/{room_id}/devices/{device_id}/live"
-//        return callbackFlow {
-//            client.webSocket(url) {
-//                for (msg in incoming) {
-//                    send(String(msg.data).toFloat())
-//                }
-//            }
-//        }
+        val url = "rooms/$roomId/devices/$deviceId/live"
         return flow {
-            while (true) {
-                emit(Random.nextFloat())
-                delay(1000)
+            client.webSocket(url) {
+                for (msg in incoming) {
+                    Log.d("ws", "emitted ${msg.data}")
+                    emit((String(msg.data).toFloatOrNull()?.times(10) ?: -42F).roundToInt()/10F)
+                }
             }
         }
     }
@@ -90,7 +72,10 @@ class DeviceRepositoryImpl @Inject constructor(private val client: HttpClient) :
         deviceId: Long,
         value: Float,
     ): Boolean = withContext(Dispatchers.IO) {
-        val response = client.post("rooms/$roomId/devices/$deviceId?value=$value")
+        val url = "rooms/$roomId/devices/$deviceId?value=$value"
+        println(url)
+        val response = client.post(url)
+        println(response.bodyAsText())
         response.status == HttpStatusCode.OK
     }
 

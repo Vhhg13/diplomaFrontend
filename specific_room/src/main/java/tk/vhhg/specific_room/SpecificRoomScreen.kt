@@ -1,8 +1,10 @@
 package tk.vhhg.specific_room
 
-import android.util.Log
+import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -37,6 +38,7 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -45,11 +47,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -112,6 +113,7 @@ fun SpecificRoomLayout(
     navigateToDevice: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    LaunchedEffect(Unit) { onEvent(UiEvent.UpdateDataEvent) }
     Column(modifier.verticalScroll(rememberScrollState())) {
         if (uiState.currentTemp == null) {
             CelsiusKnob(0F, {}, modifier, 0F) { _, _ ->
@@ -144,7 +146,7 @@ fun SpecificRoomLayout(
                 uiState.currentTemp,
                 uiState.targetTemp,
                 uiState.deadline,
-                setDeadline = { onEvent(UiEvent.SetDeadlineEvent(it)) }
+                onEvent
             )
         }
         DevicesAndScripts(
@@ -156,6 +158,7 @@ fun SpecificRoomLayout(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ColumnScope.DevicesAndScripts(
     script: String,
@@ -177,6 +180,7 @@ fun ColumnScope.DevicesAndScripts(
         Spacer(Modifier.width(16.dp))
         Text(stringResource(R.string.devices_and_scripts), style = MaterialTheme.typography.titleLarge)
     }
+    val haptics = LocalHapticFeedback.current
     AnimatedVisibility(areDevicesOpen) {
         Column {
             for(device in devices) {
@@ -184,10 +188,16 @@ fun ColumnScope.DevicesAndScripts(
                     modifier = Modifier
                         .padding(horizontal = 26.dp)
                         .fillMaxWidth()
-                        .clickable {
-                            //onEvent(UiEvent.OpenDeviceEvent(device.id))
-                            navigateToDevice(device.id)
-                        },
+                        .combinedClickable(
+                            onClick = {
+                                //onEvent(UiEvent.OpenDeviceEvent(device.id))
+                                navigateToDevice(device.id)
+                            },
+                            onLongClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onEvent(UiEvent.DeleteEvent(device.id))
+                            },
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val icon = when (device.type) {
@@ -209,29 +219,29 @@ fun ColumnScope.DevicesAndScripts(
                 Icon(Icons.Default.Add, null, Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.add_device), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
             }
-            var code by remember { mutableStateOf(script) }
-            Card(Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 16.dp), RoundedCornerShape(16.dp)) {
-                BasicTextField(
-                    value = code,
-                    onValueChange = { code = it },
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontFamily = FontFamily(Font(R.font.jb_mono))
-                    )
-                )
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(onClick = {
-                    onEvent(UiEvent.SaveScriptEvent(code))
-                }, enabled = code != script) {
-                    Text(stringResource(R.string.save))
-                }
-            }
+//            var code by remember { mutableStateOf(script) }
+//            Card(Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 32.dp, vertical = 16.dp), RoundedCornerShape(16.dp)) {
+//                BasicTextField(
+//                    value = code,
+//                    onValueChange = { code = it },
+//                    modifier = Modifier
+//                        .padding(16.dp)
+//                        .fillMaxWidth(),
+//                    textStyle = TextStyle(
+//                        color = MaterialTheme.colorScheme.onSurface,
+//                        fontFamily = FontFamily(Font(R.font.jb_mono))
+//                    )
+//                )
+//            }
+//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+//                Button(onClick = {
+//                    onEvent(UiEvent.SaveScriptEvent(code))
+//                }, enabled = code != script) {
+//                    Text(stringResource(R.string.save))
+//                }
+//            }
         }
     }
 }
@@ -242,7 +252,7 @@ fun HeatingCoolingComponent(
     currentTemp: Float,
     targetTemp: Float?,
     deadline: Long?,
-    setDeadline: (Long?) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var isTimeInputShown by remember { mutableStateOf(false) }
@@ -255,14 +265,14 @@ fun HeatingCoolingComponent(
     if (isTimeInputShown) TimeInputDialog(
         timeInputState,
         onOkRequest = {
-            setDeadline(todayAt(timeInputState.hour, timeInputState.minute))
+            onEvent(UiEvent.SetDeadlineEvent(todayAt(timeInputState.hour, timeInputState.minute)))
             isTimeInputShown = false
         },
         onDismissRequest = {
             isTimeInputShown = false
         }
     )
-    AnimatedVisibility(visible = targetTemp?.let { it != currentTemp } ?: false) {
+//    AnimatedVisibility(visible = targetTemp?.let { it != currentTemp } ?: false) {
         Column(modifier.fillMaxWidth()) {
             Spacer(Modifier.height(16.dp))
             Row(
@@ -278,7 +288,7 @@ fun HeatingCoolingComponent(
                 Text(stringResource(strRes), style = MaterialTheme.typography.titleLarge)
                 Switch(checked = deadline != null, onCheckedChange = {
                     if (it) isTimeInputShown = true
-                    else setDeadline(null)
+                    else onEvent(UiEvent.SetDeadlineEvent(null))
                 })
             }
             Spacer(Modifier.height(16.dp))
@@ -296,9 +306,19 @@ fun HeatingCoolingComponent(
                     .fillMaxWidth()
             )
             Spacer(Modifier.height(24.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Button({ onEvent(UiEvent.SaveRegimeEvent) }) {
+                    Text(stringResource(R.string.save))
+                }
+                Spacer(Modifier.width(32.dp))
+                Button(onClick = { onEvent(UiEvent.ClearEvent) }, enabled = deadline != null || targetTemp != null) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+            Spacer(Modifier.height(24.dp))
             HorizontalDivider(Modifier.padding(horizontal = 26.dp))
         }
-    }
+//    }
 }
 
 @Composable
