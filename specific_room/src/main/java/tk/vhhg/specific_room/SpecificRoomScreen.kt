@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -51,6 +52,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -219,29 +223,29 @@ fun ColumnScope.DevicesAndScripts(
                 Icon(Icons.Default.Add, null, Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.add_device), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
             }
-//            var code by remember { mutableStateOf(script) }
-//            Card(Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 32.dp, vertical = 16.dp), RoundedCornerShape(16.dp)) {
-//                BasicTextField(
-//                    value = code,
-//                    onValueChange = { code = it },
-//                    modifier = Modifier
-//                        .padding(16.dp)
-//                        .fillMaxWidth(),
-//                    textStyle = TextStyle(
-//                        color = MaterialTheme.colorScheme.onSurface,
-//                        fontFamily = FontFamily(Font(R.font.jb_mono))
-//                    )
-//                )
-//            }
-//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-//                Button(onClick = {
-//                    onEvent(UiEvent.SaveScriptEvent(code))
-//                }, enabled = code != script) {
-//                    Text(stringResource(R.string.save))
-//                }
-//            }
+            var code by remember { mutableStateOf(script) }
+            Card(Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp, vertical = 16.dp), RoundedCornerShape(16.dp)) {
+                BasicTextField(
+                    value = code,
+                    onValueChange = { code = it },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    textStyle = TextStyle(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontFamily = FontFamily(Font(R.font.jb_mono))
+                    )
+                )
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Button(onClick = {
+                    onEvent(UiEvent.SaveScriptEvent(code))
+                }, enabled = code != script) {
+                    Text(stringResource(R.string.save))
+                }
+            }
         }
     }
 }
@@ -306,15 +310,21 @@ fun HeatingCoolingComponent(
                     .fillMaxWidth()
             )
             Spacer(Modifier.height(24.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Button({ onEvent(UiEvent.SaveRegimeEvent) }) {
-                    Text(stringResource(R.string.save))
+                    Text(stringResource(R.string.apply_temperature))
                 }
-                Spacer(Modifier.width(32.dp))
+                Spacer(Modifier.height(16.dp))
                 Button(onClick = { onEvent(UiEvent.ClearEvent) }, enabled = deadline != null || targetTemp != null) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(R.string.null_all_devices))
                 }
             }
+
+//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+//
+//
+//
+//            }
             Spacer(Modifier.height(24.dp))
             HorizontalDivider(Modifier.padding(horizontal = 26.dp))
         }
