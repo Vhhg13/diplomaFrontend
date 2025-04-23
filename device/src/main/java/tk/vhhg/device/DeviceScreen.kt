@@ -56,6 +56,7 @@ fun DeviceScreen(
     deviceId: Long,
     roomId: Long,
     roomName: String,
+    navigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DeviceScreenViewModel =
         hiltViewModel<DeviceScreenViewModel, DeviceScreenViewModel.Factory>{
@@ -66,12 +67,17 @@ fun DeviceScreen(
     if (uiState.isLoading) {
         LoadingLayout()
     } else {
-        DeviceLayout(uiState, viewModel::onEvent, modifier)
+        DeviceLayout(uiState, viewModel::onEvent, navigateBack, modifier)
     }
 }
 
 @Composable
-fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifier = Modifier) {
+fun DeviceLayout(
+    uiState: UiState,
+    onEvent: (UiEvent) -> Unit,
+    navigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -107,18 +113,7 @@ fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifie
 
         Spacer(Modifier.height(32.dp))
 
-        OutlinedTextField(
-            singleLine = true,
-            modifier = Modifier.padding(horizontal = 32.dp).fillMaxWidth(),
-            keyboardActions = KeyboardActions { defaultKeyboardAction(ImeAction.Next) },
-            value = uiState.maxPower,
-            onValueChange = { onEvent(UiEvent.ChangeMaxPowerEvent(it)) },
-            label = { Text(stringResource(R.string.max_power)) },
-            enabled = uiState.device.type != DeviceType.TEMP
-        )
 
-
-        Spacer(Modifier.height(32.dp))
         Row(
             Modifier.padding(horizontal = 32.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -144,6 +139,18 @@ fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifie
                 label = { Text(stringResource(R.string.device_name)) }
             )
         }
+        Spacer(Modifier.height(32.dp))
+        OutlinedTextField(
+            singleLine = true,
+            modifier = Modifier.padding(horizontal = 32.dp).fillMaxWidth(),
+            keyboardActions = KeyboardActions { defaultKeyboardAction(ImeAction.Next) },
+            value = uiState.maxPower,
+            onValueChange = { onEvent(UiEvent.ChangeMaxPowerEvent(it)) },
+            label = { Text(stringResource(R.string.max_power)) },
+            enabled = uiState.device.type != DeviceType.TEMP
+        )
+
+
         Spacer(Modifier.height(32.dp))
         Row(
             Modifier.padding(horizontal = 32.dp),
@@ -172,6 +179,7 @@ fun DeviceLayout(uiState: UiState, onEvent: (UiEvent) -> Unit ,modifier: Modifie
         Spacer(Modifier.height(32.dp))
         Button(onClick = {
             onEvent(UiEvent.OnSaveDeviceEvent)
+            navigateBack()
         }) {
             Icon(Icons.Default.Check, null)
             Text(stringResource(R.string.save))
@@ -222,7 +230,7 @@ private fun DeviceScreenPreview() {
                     currentWattage = 500F,
                     isLoading = false,
                     roomName = "Room name",
-                ), onEvent = {_ ->}
+                ), onEvent = {_ ->}, navigateBack = {}
             )
         }
     }

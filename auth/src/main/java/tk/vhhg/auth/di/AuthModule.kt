@@ -14,6 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import tk.vhhg.auth.data.AuthService
 import tk.vhhg.auth.data.AuthServiceImpl
+import tk.vhhg.auth.data.PushTokenService
+import tk.vhhg.auth.data.PushTokenServiceImpl
 import tk.vhhg.auth.data.TokenService
 import tk.vhhg.auth.data.TokenServiceImpl
 import javax.inject.Qualifier
@@ -26,6 +28,9 @@ interface AuthModule {
 
     @Binds
     fun bindAuthService(authService: AuthServiceImpl): AuthService
+
+    @Binds
+    fun bindPushTokenService(pushTokenServiceImpl: PushTokenServiceImpl): PushTokenService
 
     companion object {
         @Provides

@@ -6,4 +6,9 @@
     <string name="nav_im">Настройка имитационной модели</string>
     <string name="nav_leave">Выйти из учётной записи</string>
     <string name="nav_room">Помещение</string>
+    <string name="settings">Настройки</string>
+    <string name="notifications">Разрешить push-уведомления</string>
+    <string name="allow_notifications_yourself">Разрешите уведомления в настройках системы</string>
+    <string name="already_allowed">Уведомления уже разрешены</string>
+    <string name="notifications_granted">Уведомления разрешены</string>
 </resources>

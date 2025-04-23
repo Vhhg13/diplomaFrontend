@@ -53,7 +53,7 @@ class DeviceRepositoryImpl @Inject constructor(private val client: HttpClient) :
             client.webSocket(url) {
                 for (msg in incoming) {
                     Log.d("ws", "emitted ${msg.data}")
-                    emit((String(msg.data).toFloatOrNull()?.times(10) ?: -42F).roundToInt()/10F)
+                    emit((String(msg.data).toFloatOrNull()?.times(10) ?: 0F).roundToInt()/10F)
                 }
             }
         }

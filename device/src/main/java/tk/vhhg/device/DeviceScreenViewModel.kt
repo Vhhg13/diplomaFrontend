@@ -149,9 +149,11 @@ class DeviceScreenViewModel @AssistedInject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCleared() {
-        valueDebounce?.cancel()
-        GlobalScope.launch {
-            deviceRepository.setDeviceValue(roomId = roomId, value = _uiState.value.currentWattage, deviceId = deviceId)
+        valueDebounce?.let {
+            it.cancel()
+            GlobalScope.launch {
+                deviceRepository.setDeviceValue(roomId = roomId, value = _uiState.value.currentWattage, deviceId = deviceId)
+            }
         }
         super.onCleared()
     }

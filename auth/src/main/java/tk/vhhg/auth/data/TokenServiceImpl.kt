@@ -12,7 +12,9 @@ import tk.vhhg.auth.di.TokenDataStore
 import tk.vhhg.auth.di.TokenServiceCoroutineScope
 import tk.vhhg.auth.model.TokenPair
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TokenServiceImpl @Inject constructor(
     @TokenDataStore
     private val tokenPreferences: DataStore<Preferences>,

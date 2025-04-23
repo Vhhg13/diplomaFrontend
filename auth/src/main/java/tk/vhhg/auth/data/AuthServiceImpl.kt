@@ -10,7 +10,9 @@ import io.ktor.http.contentType
 import tk.vhhg.auth.model.TokenPair
 import tk.vhhg.auth.model.UsernamePassword
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class AuthServiceImpl @Inject constructor(
     private val tokenService: TokenService,
     private val ktor: HttpClient,

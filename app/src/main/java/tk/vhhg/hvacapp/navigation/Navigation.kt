@@ -1,5 +1,6 @@
 package tk.vhhg.hvacapp.navigation
 
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -17,6 +18,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +65,7 @@ import tk.vhhg.specific_room.SpecificRoomScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
+fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -133,6 +135,19 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                     selected = false,
                     onClick = logout
                 )
+                val apiVersion = remember { Build.VERSION.SDK_INT }
+                if (apiVersion >= Build.VERSION_CODES.TIRAMISU) {
+                    HorizontalDivider()
+                    Text(
+                        stringResource(R.string.settings), Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    NavigationDrawerItem(
+                        label = navLabel(R.string.notifications),
+                        selected = false,
+                        onClick = enableNotifications
+                    )
+                }
             }
         }) {
         Scaffold(
@@ -191,7 +206,7 @@ fun Navigation(logout: () -> Unit, modifier: Modifier = Modifier) {
                 }
                 composable<Screen.DeviceRoute> { deviceScreen ->
                     val route = deviceScreen.toRoute<Screen.DeviceRoute>()
-                    DeviceScreen(route.deviceId, route.roomId, route.roomName)
+                    DeviceScreen(route.deviceId, route.roomId, route.roomName, { navController.navigateUp() })
                 }
             }
         }
