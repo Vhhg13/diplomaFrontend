@@ -5,9 +5,13 @@ import android.app.UiModeManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import dagger.hilt.android.HiltAndroidApp
+import tk.vhhg.auth.data.PushTokenService
+import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application() {
+    @Inject
+    lateinit var pushTokenService: PushTokenService
     override fun onCreate() {
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

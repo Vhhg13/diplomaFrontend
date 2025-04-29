@@ -34,7 +34,7 @@ android {
             )
         }
         debug {
-            val local = true
+            val local = false
 
             val props = Properties()
             props.load(project.rootProject.file("local.properties").inputStream())

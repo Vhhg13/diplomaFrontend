@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ fun RoomsScreen(
     viewModel: RoomsViewModel = hiltViewModel(),
     textColor: Color = MaterialTheme.colorScheme.onSurface,
 ){
+    LaunchedEffect(Unit) { viewModel.getData() }
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState { uiState.pageCount }
     PagerDots(textColor, pagerState.settledPage, uiState.pageCount)

@@ -2,7 +2,6 @@ package tk.vhhg.specific_room
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -28,6 +27,8 @@ class SpecificRoomViewModel @AssistedInject constructor(
     private val deviceRepository: DeviceRepository
 ) : ViewModel() {
 
+    companion object { const val DEBOUNCE_DELAY = 1000L }
+
     @AssistedFactory
     interface Factory { fun create(roomId: Long): SpecificRoomViewModel }
 
@@ -35,6 +36,7 @@ class SpecificRoomViewModel @AssistedInject constructor(
     val uiState = _uiState.asStateFlow()
     private lateinit var room: Room
     private var collectionJob: Job? = null
+    private var debounceJob: Job? = null
 
     init { getData() }
 
@@ -46,31 +48,6 @@ class SpecificRoomViewModel @AssistedInject constructor(
             is UiEvent.SetTargetTemp -> setTargetTemp(event.temp)
             UiEvent.UpdateDataEvent -> getData()
             is UiEvent.DeleteEvent -> deleteDevice(event.deviceId)
-            UiEvent.ClearEvent -> clearRegime()
-            UiEvent.SaveRegimeEvent -> saveRegime()
-        }
-    }
-
-    private fun saveRegime() {
-        viewModelScope.launch {
-            val state = uiState.value
-            roomRepository.changeTemperatureRegime(
-                roomId,
-                state.targetTemp,
-                state.deadline
-            )
-        }
-    }
-
-    private fun clearRegime() {
-        _uiState.update {
-            it.copy(
-                targetTemp = null,
-                deadline = null
-            )
-        }
-        viewModelScope.launch {
-            roomRepository.changeTemperatureRegime(roomId, null, null)
         }
     }
 
@@ -92,7 +69,10 @@ class SpecificRoomViewModel @AssistedInject constructor(
             anotherTemp?.id?.let {
                 collectionJob = viewModelScope.launch {
                     deviceRepository.getDeviceDataFlow(roomId, it)?.collect { temp ->
-                        _uiState.update { it.copy(currentTemp = temp) }
+                        _uiState.update { it.copy(
+                            currentTemp = temp,
+                            targetTemp = if (temp == it.targetTemp) null else it.targetTemp
+                        ) }
                     }
                 }
             }
@@ -125,7 +105,10 @@ class SpecificRoomViewModel @AssistedInject constructor(
             _uiState.update { it.copy(isLoading = false) }
             collectionJob = viewModelScope.launch {
                 thermostatDataFlow?.collect { temp ->
-                    _uiState.update { it.copy(currentTemp = temp) }
+                    _uiState.update { it.copy(
+                        currentTemp = temp,
+                        targetTemp = if (temp == it.targetTemp) null else it.targetTemp
+                    ) }
                 }
             }
         }
@@ -133,14 +116,32 @@ class SpecificRoomViewModel @AssistedInject constructor(
 
 
     private fun setTargetTemp(temp: Float?) {
-        if (temp == uiState.value.currentTemp)
-            _uiState.update { it.copy(targetTemp = null) }
-        else
-            _uiState.update { it.copy(targetTemp = temp) }
+        debounceJob?.cancel()
+        _uiState.update { it.copy(targetTemp = temp) }
+        debounceJob = viewModelScope.launch {
+            delay(DEBOUNCE_DELAY)
+            roomRepository.changeTemperatureRegime(
+                roomId = roomId,
+                target = temp,
+                deadline = uiState.value.deadline
+            )
+            debounceJob = null
+        }
     }
 
     private fun setDeadline(deadline: Long?) {
         _uiState.update { it.copy(deadline = deadline) }
+        if (uiState.value.targetTemp == null) return
+        debounceJob?.cancel()
+        debounceJob = viewModelScope.launch {
+            delay(DEBOUNCE_DELAY)
+            roomRepository.changeTemperatureRegime(
+                roomId = roomId,
+                target = uiState.value.targetTemp,
+                deadline = uiState.value.deadline
+            )
+            debounceJob = null
+        }
     }
 
     private fun saveScript(code: String) = viewModelScope.launch {
@@ -152,13 +153,13 @@ class SpecificRoomViewModel @AssistedInject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCleared() {
-        val state = uiState.value
-        if (state.targetTemp != null && state.targetTemp != state.currentTemp) {
+        debounceJob?.let {
+            it.cancel()
             GlobalScope.launch(Dispatchers.IO) {
                 roomRepository.changeTemperatureRegime(
-                    roomId,
-                    state.targetTemp,
-                    state.deadline
+                    roomId = roomId,
+                    target = uiState.value.targetTemp,
+                    deadline = uiState.value.deadline
                 )
             }
         }

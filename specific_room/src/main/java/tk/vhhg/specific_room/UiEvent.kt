@@ -6,6 +6,4 @@ sealed interface UiEvent {
     data class SetTargetTemp(val temp: Float?) : UiEvent
     data object UpdateDataEvent : UiEvent
     data class DeleteEvent(val deviceId: Long) : UiEvent
-    data object SaveRegimeEvent : UiEvent
-    data object ClearEvent : UiEvent
 }

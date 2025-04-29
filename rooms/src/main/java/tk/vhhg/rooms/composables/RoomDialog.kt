@@ -2,6 +2,7 @@ package tk.vhhg.rooms.composables
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,10 +26,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColorInt
 import tk.vhhg.data.dto.Room
 import tk.vhhg.rooms.R
 import tk.vhhg.theme.HvacAppTheme
+import kotlin.random.Random
 
 @Composable
 fun CommonDialog(
@@ -67,12 +70,15 @@ fun CommonDialog(
                     Modifier.padding(vertical = 16.dp)
                 )
 
-                val color = remember { mutableStateOf(room?.color ?: "#FFFF0000") }
+                val color = remember { mutableStateOf(room?.color ?: generateRandomSoftColorHex()) }
                 Row(verticalAlignment = Alignment.Top) {
                     Canvas(
                         Modifier
                             .padding(2.dp)
                             .size(48.dp, 48.dp)
+                            .clickable {
+                                color.value = generateRandomSoftColorHex()
+                            }
                     ) { drawCircle(colorFrom(color, room)) }
                     Spacer(Modifier.width(24.dp))
                     TextFieldWithState(
@@ -127,4 +133,15 @@ fun EditRoomDialogPreview(modifier: Modifier = Modifier) {
             allowDeletion = true
         )
     }
+}
+
+private fun generateRandomSoftColorHex(): String {
+    val hue = Random.nextFloat() * 360f
+    val saturation = 0.15f + Random.nextFloat() * 0.5f
+    val lightness = 0.55f + Random.nextFloat() * 0.4f
+    val alpha = 255
+
+    val colorInt = ColorUtils.HSLToColor(floatArrayOf(hue, saturation, lightness))
+    val argbColor = (alpha shl 24) or (colorInt and 0x00FFFFFF)
+    return String.format("#%08X", argbColor)
 }

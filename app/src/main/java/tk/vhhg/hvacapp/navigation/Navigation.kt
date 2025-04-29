@@ -6,7 +6,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -82,7 +81,7 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
     val roomDialog = remember { mutableStateOf<RoomDialogEnum?>(null) }
 
     ModalNavigationDrawer(
-        gesturesEnabled = false,
+        gesturesEnabled = true,
         drawerState = drawerState,
         modifier = modifier,
         drawerContent = {
@@ -100,18 +99,6 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
                     onClick = {
                         navController.popBackStack()
                         navController.navigate(RoomsRoute) {
-                            launchSingleTop = true
-                        }
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.AutoMirrored.Outlined.List,null) },
-                    label = navLabel(R.string.nav_logs),
-                    selected = navBackStackEntry.isRoute(LogsRoute),
-                    onClick = {
-                        navController.popBackStack()
-                        navController.navigate(LogsRoute) {
                             launchSingleTop = true
                         }
                         scope.launch { drawerState.close() }
@@ -194,7 +181,6 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
                         onChangeColor = { color -> scaffoldColor = color }
                     )
                 }
-                composable<LogsRoute> { }
                 composable<ImSettingsRoute> { ImScreen() }
                 composable<SpecificRoomRoute> { specificRoomRoute ->
                     val route = specificRoomRoute.toRoute<SpecificRoomRoute>()

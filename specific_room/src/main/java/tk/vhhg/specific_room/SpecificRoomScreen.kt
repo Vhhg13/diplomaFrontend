@@ -1,6 +1,5 @@
 package tk.vhhg.specific_room
 
-import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -162,7 +161,7 @@ fun SpecificRoomLayout(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColumnScope.DevicesAndScripts(
     script: String,
@@ -193,10 +192,7 @@ fun ColumnScope.DevicesAndScripts(
                         .padding(horizontal = 26.dp)
                         .fillMaxWidth()
                         .combinedClickable(
-                            onClick = {
-                                //onEvent(UiEvent.OpenDeviceEvent(device.id))
-                                navigateToDevice(device.id)
-                            },
+                            onClick = { navigateToDevice(device.id) },
                             onLongClick = {
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 onEvent(UiEvent.DeleteEvent(device.id))
@@ -216,10 +212,8 @@ fun ColumnScope.DevicesAndScripts(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
                 .padding(horizontal = 26.dp)
                 .fillMaxWidth()
-                .clickable {
-                    //onEvent(UiEvent.AddNewDeviceEvent)
-                    navigateToDevice(Device.NONEXISTENT_DEVICE_ID)
-                }) {
+                .clickable { navigateToDevice(Device.NONEXISTENT_DEVICE_ID) }
+            ){
                 Icon(Icons.Default.Add, null, Modifier.padding(16.dp), tint = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.add_device), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
             }
@@ -272,63 +266,43 @@ fun HeatingCoolingComponent(
             onEvent(UiEvent.SetDeadlineEvent(todayAt(timeInputState.hour, timeInputState.minute)))
             isTimeInputShown = false
         },
-        onDismissRequest = {
-            isTimeInputShown = false
-        }
+        onDismissRequest = { isTimeInputShown = false }
     )
-//    AnimatedVisibility(visible = targetTemp?.let { it != currentTemp } ?: false) {
-        Column(modifier.fillMaxWidth()) {
-            Spacer(Modifier.height(16.dp))
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-            ) {
-                val strRes =
-                    if (currentTemp > (targetTemp ?: 0F)) R.string.specify_cool_deadline
-                    else R.string.specify_heat_deadline
-                Text(stringResource(strRes), style = MaterialTheme.typography.titleLarge)
-                Switch(checked = deadline != null, onCheckedChange = {
-                    if (it) isTimeInputShown = true
-                    else onEvent(UiEvent.SetDeadlineEvent(null))
-                })
-            }
-            Spacer(Modifier.height(16.dp))
-            val sdf = LocalSdf.current
-            OutlinedTextField(
-                readOnly = true,
-                leadingIcon = {
-                    Icon(painterResource(R.drawable.baseline_access_time_24), null)
-                },
-                enabled = deadline != null,
-                value = sdf.format(deadline ?: System.currentTimeMillis()),
-                onValueChange = {},
-                modifier = Modifier
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-            )
-            Spacer(Modifier.height(24.dp))
-            Column(Modifier.fillMaxWidth().padding(horizontal = 32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Button({ onEvent(UiEvent.SaveRegimeEvent) }) {
-                    Text(stringResource(R.string.apply_temperature))
-                }
-                Spacer(Modifier.height(16.dp))
-                Button(onClick = { onEvent(UiEvent.ClearEvent) }, enabled = deadline != null || targetTemp != null) {
-                    Text(stringResource(R.string.null_all_devices))
-                }
-            }
-
-//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-//
-//
-//
-//            }
-            Spacer(Modifier.height(24.dp))
-            HorizontalDivider(Modifier.padding(horizontal = 26.dp))
+    Column(modifier.fillMaxWidth()) {
+        Spacer(Modifier.height(16.dp))
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .fillMaxWidth()
+        ) {
+            val strRes =
+                if (currentTemp > (targetTemp ?: 0F)) R.string.specify_cool_deadline
+                else R.string.specify_heat_deadline
+            Text(stringResource(strRes), style = MaterialTheme.typography.titleLarge)
+            Switch(checked = deadline != null, onCheckedChange = {
+                if (it) isTimeInputShown = true
+                else onEvent(UiEvent.SetDeadlineEvent(null))
+            })
         }
-//    }
+        Spacer(Modifier.height(16.dp))
+        val sdf = LocalSdf.current
+        OutlinedTextField(
+            readOnly = true,
+            leadingIcon = {
+                Icon(painterResource(R.drawable.baseline_access_time_24), null)
+            },
+            enabled = deadline != null,
+            value = sdf.format(deadline ?: System.currentTimeMillis()),
+            onValueChange = {},
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                .fillMaxWidth()
+        )
+        Spacer(Modifier.height(24.dp))
+        HorizontalDivider(Modifier.padding(horizontal = 26.dp))
+    }
 }
 
 @Composable

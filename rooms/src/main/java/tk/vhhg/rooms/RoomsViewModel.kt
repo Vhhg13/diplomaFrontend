@@ -75,11 +75,12 @@ class RoomsViewModel @Inject constructor(private val roomRepository: RoomReposit
         }
     }.let{}
 
-    init {
+    fun getData() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(rooms = roomRepository.getRooms(), isLoading = false)
             }
         }
     }
+    init { getData() }
 }
