@@ -25,6 +25,9 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
@@ -68,6 +71,7 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val surfaceColor = MaterialTheme.colorScheme.surface
     var scaffoldColor by remember { mutableStateOf(surfaceColor) }
@@ -138,6 +142,7 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
             }
         }) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = if (scaffoldColor == surfaceColor) surfaceColor else scaffoldColorAnimated,
             floatingActionButton = {
                 if (navBackStackEntry.isRoute(RoomsRoute))
@@ -186,8 +191,17 @@ fun Navigation(logout: () -> Unit, enableNotifications: () -> Unit, modifier: Mo
                     val route = specificRoomRoute.toRoute<SpecificRoomRoute>()
                     val roomId = route.id
                     val roomName = route.name
+                    val noHeaterString = stringResource(R.string.no_heater)
+                    val noCoolerString = stringResource(R.string.no_cooler)
                     SpecificRoomScreen(roomId, navigateToDevice = { deviceId ->
                         navController.navigate(Screen.DeviceRoute(deviceId, roomId, roomName))
+                    }, showSnackbar = { noHeater: Boolean ->
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = if (noHeater) noHeaterString else noCoolerString,
+                                withDismissAction = true
+                            )
+                        }
                     })
                 }
                 composable<Screen.DeviceRoute> { deviceScreen ->

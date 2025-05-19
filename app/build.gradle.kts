@@ -34,8 +34,9 @@ android {
             )
         }
         debug {
+            isMinifyEnabled = false
+            isDebuggable = true
             val local = false
-
             val props = Properties()
             props.load(project.rootProject.file("local.properties").inputStream())
             val proto = props.getProperty("server.protocol")

@@ -1,41 +1,31 @@
 package tk.vhhg.im.ui
 
-import androidx.compose.runtime.mutableStateListOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonPrimitive
 import tk.vhhg.im.data.ImRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class ImViewModel @Inject constructor(private val imRepo: ImRepository) : ViewModel() {
     companion object {
-        const val EMPTY_JSON = """
-{
- "id": ,
- "heaters": "",
- "coolers": "",
- "volume": ,
- "out": ,
- "k": 1,
- "thermostat": ""
-}"""
+        val EMPTY_MODEL = ImModel()
+        val EMPTY_UI_STATE = EMPTY_MODEL.toUiState()
     }
 
-    val list = mutableStateListOf<String>()
+    private val _uiState = MutableStateFlow<List<ImModelUiState>>(emptyList())
+    val uiState: StateFlow<List<ImModelUiState>> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            list.addAll(imRepo.getIms().map {
-                it.replace(",", ",\n ")
-                    .replace("}", "\n}")
-                    .replace("{", "{\n ")
-            })
+            val models = imRepo.getIms().map { Json.decodeFromString<ImModel>(it) }
+            _uiState.value = models.map { it.toUiState() }
         }
     }
 
@@ -49,20 +39,30 @@ class ImViewModel @Inject constructor(private val imRepo: ImRepository) : ViewMo
 
     private fun submitIm(event: ImEvent.SubmitImEvent) {
         viewModelScope.launch {
-            list[event.index] = event.json
-            imRepo.putIm(event.json)
+            val updatedList = _uiState.value.toMutableList()
+            updatedList[event.index] = event.modelUiState
+            _uiState.value = updatedList
+            val str = Json.encodeToString(event.modelUiState.toImModel())
+            Log.d("deb", event.modelUiState.toImModel().toString())
+            Log.d("deb", str)
+            imRepo.putIm(str)
         }
     }
 
     private fun addNewIm() {
-        list.add(EMPTY_JSON)
+        val updatedList = _uiState.value.toMutableList()
+        updatedList.add(EMPTY_UI_STATE)
+        _uiState.value = updatedList
     }
 
     private fun deleteIm(index: Int) {
         viewModelScope.launch {
-            val o = Json.decodeFromString<JsonObject>(list[index])["id"]!!.jsonPrimitive.int
-            imRepo.deleteIm(o)
-            list.removeRange(index, index + 1)
+            val currentList = _uiState.value
+            val id = currentList[index].id.toLongOrNull() ?: return@launch
+            imRepo.deleteIm(id.toInt())
+            val updatedList = currentList.toMutableList()
+            updatedList.removeAt(index)
+            _uiState.value = updatedList
         }
     }
 }

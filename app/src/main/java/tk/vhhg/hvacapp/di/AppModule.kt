@@ -22,6 +22,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import tk.vhhg.auth.data.TokenService
 import tk.vhhg.auth.model.TokenPair
 import tk.vhhg.hvacapp.BuildConfig
@@ -37,7 +38,9 @@ interface AppModule {
         @Singleton
         fun provideKtor(tokenService: TokenService): HttpClient {
             return HttpClient(CIO) {
-                install(ContentNegotiation) { json() }
+                install(ContentNegotiation) { json(Json {
+                    encodeDefaults = true
+                }) }
                 defaultRequest { url(BASE_URL) }
                 install(Logging)
                 install(WebSockets)

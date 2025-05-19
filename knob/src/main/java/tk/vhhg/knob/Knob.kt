@@ -178,7 +178,7 @@ fun TKnob(
 }
 
 @Composable
-fun CelsiusKnob(current: Float, setTargetPosition: (Float) -> Unit, modifier: Modifier = Modifier, target: Float = current, minValue: Float = 0F, maxValue: Float = 42F, content: @Composable (Float, Float) -> Unit) {
+fun CelsiusKnob(current: Float, setTargetPosition: (Float) -> Unit, modifier: Modifier = Modifier, target: Float = current, minValue: Float = 0F, maxValue: Float = 30F, content: @Composable (Float, Float) -> Unit) {
     fun position(temp: Float): Int = (((temp-minValue)/maxValue) * 360).roundToInt()
     TKnob(
         depth = 30F,

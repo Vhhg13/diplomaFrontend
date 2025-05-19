@@ -59,6 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import tk.vhhg.data.dto.Device
 import tk.vhhg.data.dto.DeviceType
 import tk.vhhg.knob.CelsiusKnob
@@ -75,11 +77,18 @@ private val LocalSdf = compositionLocalOf { SimpleDateFormat("hh:mm a", Locale.R
 fun SpecificRoomScreen(
     roomId: Long,
     navigateToDevice: (Long) -> Unit,
+    showSnackbar: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SpecificRoomViewModel =
         hiltViewModel<SpecificRoomViewModel, SpecificRoomViewModel.Factory> { it.create(roomId) },
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(viewModel) {
+        viewModel.snackbarFlow.collectLatest {
+            delay(100)
+            it?.let { showSnackbar(it) }
+        }
+    }
     if (uiState.isLoading) {
         LoadingLayout(modifier)
     } else {
@@ -116,7 +125,11 @@ fun SpecificRoomLayout(
     navigateToDevice: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LaunchedEffect(Unit) { onEvent(UiEvent.UpdateDataEvent) }
+    LaunchedEffect(Unit) {
+        onEvent(UiEvent.UpdateDataEvent)
+        delay(500)
+        onEvent(UiEvent.UpdateDataEvent)
+    }
     Column(modifier.verticalScroll(rememberScrollState())) {
         if (uiState.currentTemp == null) {
             CelsiusKnob(0F, {}, modifier, 0F) { _, _ ->

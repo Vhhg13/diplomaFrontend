@@ -11,4 +11,6 @@
     <string name="allow_notifications_yourself">Разрешите уведомления в настройках системы</string>
     <string name="already_allowed">Уведомления уже разрешены</string>
     <string name="notifications_granted">Уведомления разрешены</string>
+    <string name="no_cooler">Нет кондиционера для охлаждения</string>
+    <string name="no_heater">Нет обогревателей</string>
 </resources>

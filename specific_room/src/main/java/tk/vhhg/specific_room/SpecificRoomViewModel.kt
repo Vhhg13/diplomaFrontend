@@ -10,6 +10,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +39,9 @@ class SpecificRoomViewModel @AssistedInject constructor(
     private lateinit var room: Room
     private var collectionJob: Job? = null
     private var debounceJob: Job? = null
+
+    val _snackbarFlow = MutableStateFlow<Boolean?>(null)
+    val snackbarFlow = _snackbarFlow.asStateFlow()
 
     init { getData() }
 
@@ -114,16 +119,30 @@ class SpecificRoomViewModel @AssistedInject constructor(
         }
     }
 
+    private fun checkRequiredDevices(temp: Float): Pair<Float?, Long?> {
+        val requiredType = uiState.value.currentTemp?.let { if (temp > it) DeviceType.HEAT else DeviceType.COND }
+        if (uiState.value.devices.firstOrNull { it.type == requiredType } == null) {
+            viewModelScope.launch {
+                _snackbarFlow.value = requiredType == DeviceType.HEAT
+                delay(2000)
+                _snackbarFlow.value = null
+            }
+            return null to null
+        }
+        return temp to uiState.value.deadline
+    }
 
-    private fun setTargetTemp(temp: Float?) {
+
+    private fun setTargetTemp(temp: Float) {
+        val (t, deadline) = checkRequiredDevices(temp)
         debounceJob?.cancel()
-        _uiState.update { it.copy(targetTemp = temp) }
+        _uiState.update { it.copy(targetTemp = t) }
         debounceJob = viewModelScope.launch {
             delay(DEBOUNCE_DELAY)
             roomRepository.changeTemperatureRegime(
                 roomId = roomId,
-                target = temp,
-                deadline = uiState.value.deadline
+                target = t,
+                deadline = deadline
             )
             debounceJob = null
         }
